@@ -40,22 +40,11 @@
 
 #include "BNO080.h"
 
-BNO080::BNO080(int32_t sensorID, int address, int bus) {
-	i2c = new I2C(bus,address);
-  _sensorID = sensorID;
-  _address = address;
-
-	
-
-}
-
-BNO080::~BNO080() {
-	delete i2c;
-}
+//CTOR DTOR already implemented in .h
 
 //Attempt communication with the device
 //Return true if we got a 'Polo' back from Marco
-boolean BNO080::begin()
+bool BNO080::begin()
 {
 
 	//Begin by resetting the IMU
@@ -440,7 +429,6 @@ bool BNO080::readFRSdata(uint16_t recordID, uint8_t startLocation, uint8_t words
 		while(receivePacket() == false)
 		{
 			if(counter++ > 100) return(false); //Give up
-			delay(1);
 		}
 
 		//We have the packet, inspect it for the right contents
@@ -468,7 +456,7 @@ bool BNO080::readFRSdata(uint16_t recordID, uint8_t startLocation, uint8_t words
 
     if (spot >= MAX_METADATA_SIZE)
     {
-		if(_printDebug == true) _debugPort->println(F("metaData array over run. Returning."));
+		if(_printDebug == true) puts("metaData array over run. Returning.");
 		return(true); //We have run out of space in our array. Bail.
     }
 
@@ -491,9 +479,7 @@ void BNO080::softReset(void)
 	sendPacket(CHANNEL_EXECUTABLE, 1); //Transmit packet on channel 1, 1 byte
 
   //Read all incoming data and flush it
-  delay(50);
   while (receivePacket() == true) ;
-  delay(50);
   while (receivePacket() == true) ;
 }
 
@@ -730,12 +716,11 @@ void BNO080::saveCalibration()
 
 //Wait a certain time for incoming I2C bytes before giving up
 //Returns false if failed
-boolean BNO080::waitForI2C()
+bool BNO080::waitForI2C()
 {
 //  for (uint8_t counter = 0 ; counter < 100 ; counter++) //Don't got more than 255
 //  {
  //   if (i2c->available() > 0) return (true);
-//    delay(1);
 
 //  }
 
@@ -745,7 +730,7 @@ boolean BNO080::waitForI2C()
 
 //Check to see if there is any new data available
 //Read the contents of the incoming packet into the shtpData array
-boolean BNO080::receivePacket(void)
+bool BNO080::receivePacket(void)
 {
   i2c->write_byte(0, (uint8_t)4); //Ask for four bytes to find out how much data we need to read
   //if (waitForI2C() == false) return (false); //Error
@@ -782,7 +767,7 @@ boolean BNO080::receivePacket(void)
 //Sends multiple requests to sensor until all data bytes are received from sensor
 //The shtpData buffer has max capacity of MAX_PACKET_SIZE. Any bytes over this amount will be lost.
 //Arduino I2C read limit is 32 bytes. Header is 4 bytes, so max data we can read per interation is 28 bytes
-boolean BNO080::getData(uint16_t bytesRemaining)
+bool BNO080::getData(uint16_t bytesRemaining)
 {
   uint16_t dataSpot = 0; //Start at the beginning of shtpData array
 
@@ -822,7 +807,7 @@ boolean BNO080::getData(uint16_t bytesRemaining)
 //Given the data packet, send the header then the data
 //Returns false if sensor does not ACK
 //TODO - Arduino has a max 32 byte send. Break sending into multi packets if needed.
-boolean BNO080::sendPacket(uint8_t channelNumber, uint8_t dataLength)
+bool BNO080::sendPacket(uint8_t channelNumber, uint8_t dataLength)
 {
   uint8_t packetLength = dataLength + 4; //Add four bytes for the header
   //if(packetLength > I2C_BUFFER_LENGTH) return(false); //You are trying to send too much. Break into smaller packets.
@@ -853,44 +838,43 @@ void BNO080::printPacket(void)
 		uint16_t packetLength = (uint16_t)shtpHeader[1] << 8 | shtpHeader[0];
 
 		//Print the four byte header
-		_debugPort->print(F("Header:"));
+		puts("Header:");
 		for(uint8_t x = 0 ; x < 4 ; x++)
 		{
-			_debugPort->print(F(" "));
-			if(shtpHeader[x] < 0x10) _debugPort->print(F("0"));
-			_debugPort->print(shtpHeader[x], HEX);
+			puts(" ");
+			if(shtpHeader[x] < 0x10) puts("0");
+			printf("%x\n",shtpHeader[x]);
 		}
 
 		uint8_t printLength = packetLength - 4;
 		if(printLength > 40) printLength = 40; //Artificial limit. We don't want the phone book.
 
-		_debugPort->print(F(" Body:"));
+		puts(" Body:");
 		for(uint8_t x = 0 ; x < printLength ; x++)
 		{
-			_debugPort->print(F(" "));
-			if(shtpData[x] < 0x10) _debugPort->print(F("0"));
-			_debugPort->print(shtpData[x], HEX);
+			puts(" ");
+			if(shtpData[x] < 0x10) puts("0");
+			printf("%x\n",shtpData[x]);
 		}
 
 		if (packetLength & 1 << 15)
 		{
-			_debugPort->println(F(" [Continued packet] "));
+			puts(" [Continued packet] ");
 			packetLength &= ~(1 << 15);
 		}
 
-		_debugPort->print(F(" Length:"));
-		_debugPort->print (packetLength);
+		printf(" Length:%u", packetLength);
 
-		_debugPort->print(F(" Channel:"));
-		if (shtpHeader[2] == 0) _debugPort->print(F("Command"));
-		else if (shtpHeader[2] == 1) _debugPort->print(F("Executable"));
-		else if (shtpHeader[2] == 2) _debugPort->print(F("Control"));
-		else if (shtpHeader[2] == 3) _debugPort->print(F("Sensor-report"));
-		else if (shtpHeader[2] == 4) _debugPort->print(F("Wake-report"));
-		else if (shtpHeader[2] == 5) _debugPort->print(F("Gyro-vector"));
-		else _debugPort->print(shtpHeader[2]);
+		puts(" Channel:");
+		if (shtpHeader[2] == 0) puts("Command");
+		else if (shtpHeader[2] == 1) puts("Executable");
+		else if (shtpHeader[2] == 2) puts("Control");
+		else if (shtpHeader[2] == 3) puts("Sensor-report");
+		else if (shtpHeader[2] == 4) puts("Wake-report");
+		else if (shtpHeader[2] == 5) puts("Gyro-vector");
+		else printf("%x",shtpHeader[2]);
 		
-		_debugPort->println();
+		puts("");
 	}
 
 }

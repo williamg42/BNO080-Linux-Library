@@ -30,7 +30,7 @@
 #include <inttypes.h>
 #include "../I2C/src/I2C.h"
 
-
+typedef unsigned char byte;
 
 //The default I2C address for the BNO080 on the SparkX breakout is 0x4B. 0x4A is also possible.
 #define BNO080_DEFAULT_ADDRESS 0x4B
@@ -38,7 +38,6 @@
 //The catch-all default is 32
 #define I2C_BUFFER_LENGTH 32
 
-#endif
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
 //Registers
@@ -107,7 +106,7 @@ const byte CHANNEL_GYRO = 5;
 class BNO080 {
   public:
 
-BNO055::BNO055(int32_t sensorID, int address, int bus) {
+BNO080(int32_t sensorID, int address, int bus) {
 	i2c = new I2C(bus,address);
         _sensorID = sensorID;
         _deviceAddress = address;
@@ -116,12 +115,12 @@ BNO055::BNO055(int32_t sensorID, int address, int bus) {
 
 }
 
-BNO055::~BNO055() {
+~BNO080() {
 	delete i2c;
 }
 
 
-    boolean begin(); //By default use the default I2C addres, and use Wire port
+    bool begin(); //By default use the default I2C addres, and use Wire port
 
    
 
@@ -130,10 +129,10 @@ BNO055::~BNO055() {
 
 	float qToFloat(int16_t fixedPointValue, uint8_t qPoint); //Given a Q value, converts fixed point floating to regular floating point number
 
-	boolean waitForI2C(); //Delay based polling for I2C traffic
-	boolean receivePacket(void);
-	boolean getData(uint16_t bytesRemaining); //Given a number of bytes, send the requests in I2C_BUFFER_LENGTH chunks
-	boolean sendPacket(uint8_t channelNumber, uint8_t dataLength);
+	bool waitForI2C(); //Delay based polling for I2C traffic
+	bool receivePacket(void);
+	bool getData(uint16_t bytesRemaining); //Given a number of bytes, send the requests in I2C_BUFFER_LENGTH chunks
+	bool sendPacket(uint8_t channelNumber, uint8_t dataLength);
 	void printPacket(void); //Prints the current shtp header and data packets
 
 	void enableRotationVector(uint16_t timeBetweenReports);
@@ -212,8 +211,7 @@ BNO055::~BNO055() {
     uint8_t _deviceAddress; //Keeps track of I2C address. setI2CAddress changes this.
      int32_t _sensorID;
 
-    Stream *_debugPort; //The stream to send debug messages to if enabled. Usually Serial.
-    boolean _printDebug = false; //Flag to print debugging variables
+    bool _printDebug = false; //Flag to print debugging variables
 
 	//These are the raw sensor values pulled from the user requested Input Report
 	uint16_t rawAccelX, rawAccelY, rawAccelZ, accelAccuracy;
