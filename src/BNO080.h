@@ -35,28 +35,6 @@
 //The default I2C address for the BNO080 on the SparkX breakout is 0x4B. 0x4A is also possible.
 #define BNO080_DEFAULT_ADDRESS 0x4B
 
-//Platform specific configurations
-
-//Define the size of the I2C buffer based on the platform the user has
-//-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-#if defined(__AVR_ATmega328P__) || defined(__AVR_ATmega168__)
-
-//I2C_BUFFER_LENGTH is defined in Wire.H
-#define I2C_BUFFER_LENGTH BUFFER_LENGTH
-
-#elif defined(__SAMD21G18A__)
-
-//SAMD21 uses RingBuffer.h
-#define I2C_BUFFER_LENGTH SERIAL_BUFFER_SIZE
-
-#elif __MK20DX256__
-//Teensy
-
-#elif ARDUINO_ARCH_ESP32
-//ESP32 based platforms
-
-#else
-
 //The catch-all default is 32
 #define I2C_BUFFER_LENGTH 32
 
@@ -131,8 +109,8 @@ class BNO080 {
 
 BNO055::BNO055(int32_t sensorID, int address, int bus) {
 	i2c = new I2C(bus,address);
-  _sensorID = sensorID;
-  _deviceAddress = address;
+        _sensorID = sensorID;
+        _deviceAddress = address;
 
 	
 
