@@ -841,10 +841,6 @@ boolean BNO080::sendPacket(uint8_t channelNumber, uint8_t dataLength)
   {
     i2c->write_byte(shtpData[i]);
   }
-  if (i2c->endTransmission() != 0)
-  {
-    return (false);
-  }
 
   return (true);
 }
