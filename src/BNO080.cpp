@@ -734,7 +734,7 @@ boolean BNO080::waitForI2C()
 {
 //  for (uint8_t counter = 0 ; counter < 100 ; counter++) //Don't got more than 255
 //  {
- //   if (_i2cPort->available() > 0) return (true);
+ //   if (i2c->available() > 0) return (true);
 //    delay(1);
 
 //  }
@@ -747,14 +747,14 @@ boolean BNO080::waitForI2C()
 //Read the contents of the incoming packet into the shtpData array
 boolean BNO080::receivePacket(void)
 {
-  _i2cPort->requestFrom((uint8_t)_deviceAddress, (uint8_t)4); //Ask for four bytes to find out how much data we need to read
+  i2c->write_byte(0, (uint8_t)4); //Ask for four bytes to find out how much data we need to read
   //if (waitForI2C() == false) return (false); //Error
 
   //Get the first four bytes, aka the packet header
-  uint8_t packetLSB = _i2cPort->read();
-  uint8_t packetMSB = _i2cPort->read();
-  uint8_t channelNumber = _i2cPort->read();
-  uint8_t sequenceNumber = _i2cPort->read(); //Not sure if we need to store this or not
+  uint8_t packetLSB = i2c->read_only();
+  uint8_t packetMSB = i2c->read_only();
+  uint8_t channelNumber = i2c->read_only();
+  uint8_t sequenceNumber = i2c->read_only(); //Not sure if we need to store this or not
 
   //Store the header info.
   shtpHeader[0] = packetLSB;
@@ -792,18 +792,18 @@ boolean BNO080::getData(uint16_t bytesRemaining)
     uint16_t numberOfBytesToRead = bytesRemaining;
     if (numberOfBytesToRead > (I2C_BUFFER_LENGTH-4)) numberOfBytesToRead = (I2C_BUFFER_LENGTH-4);
 
-    _i2cPort->requestFrom((uint8_t)_deviceAddress, (uint8_t)(numberOfBytesToRead + 4));
+    i2c->write_byte(0, (uint8_t)(numberOfBytesToRead + 4));
     if (waitForI2C() == false) return (0); //Error
 
     //The first four bytes are header bytes and are throw away
-    _i2cPort->read();
-    _i2cPort->read();
-    _i2cPort->read();
-    _i2cPort->read();
+    i2c->read_only();
+    i2c->read_only();
+    i2c->read_only();
+    i2c->read_only();
 
     for (uint8_t x = 0 ; x < numberOfBytesToRead ; x++)
     {
-      uint8_t incoming = _i2cPort->read();
+      uint8_t incoming = i2c->read_only();
       if (dataSpot < MAX_PACKET_SIZE)
       {
         shtpData[dataSpot++] = incoming; //Store data into the shtpData array
@@ -827,20 +827,21 @@ boolean BNO080::sendPacket(uint8_t channelNumber, uint8_t dataLength)
   uint8_t packetLength = dataLength + 4; //Add four bytes for the header
   //if(packetLength > I2C_BUFFER_LENGTH) return(false); //You are trying to send too much. Break into smaller packets.
 
-  _i2cPort->beginTransmission(_deviceAddress);
+  //does nothing
+  //i2c->beginTransmission(_deviceAddress);
 
   //Send the 4 byte packet header
-  _i2cPort->write(packetLength & 0xFF); //Packet length LSB
-  _i2cPort->write(packetLength >> 8); //Packet length MSB
-  _i2cPort->write(channelNumber); //Channel number
-  _i2cPort->write(sequenceNumber[channelNumber]++); //Send the sequence number, increments with each packet sent, different counter for each channel
+  i2c->write_byte(0,packetLength & 0xFF); //Packet length LSB
+  i2c->write_byte(0,packetLength >> 8); //Packet length MSB
+  i2c->write_byte(0,channelNumber); //Channel number
+  i2c->write_byte(0,sequenceNumber[channelNumber]++); //Send the sequence number, increments with each packet sent, different counter for each channel
 
   //Send the user's data packet
   for (uint8_t i = 0 ; i < dataLength ; i++)
   {
-    _i2cPort->write(shtpData[i]);
+    i2c->write_byte(shtpData[i]);
   }
-  if (_i2cPort->endTransmission() != 0)
+  if (i2c->endTransmission() != 0)
   {
     return (false);
   }
