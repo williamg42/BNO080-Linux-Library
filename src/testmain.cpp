@@ -46,7 +46,7 @@ void HandleConnection(TCPSocket *sock, BNO080 &sensor1){
     // Send received string and receive again until the end of transmission
     char echoBuffer[RCVBUFSIZE];
     int recvMsgSize;
-    while ((recvMsgSize = sock->recv(echoBuffer, RCVBUFSIZE)) > 0) { // Zero means
+    while ((recvMsgSize = sock->recv(echoBuffer, 1)) > 0) { // Zero means
         // end of transmission
         if(strcmp(echoBuffer, "Q") == 0){
             //get the data
