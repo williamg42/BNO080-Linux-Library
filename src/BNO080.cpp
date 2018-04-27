@@ -50,7 +50,7 @@ bool BNO080::begin()
 	//Begin by resetting the IMU
 	uint8_t action = 2;                  // 1 = reset, 2 = on; 3 = sleep
         uint8_t reset_BNO[4] = {0,1,0,action};
-        i2c->write_byte(5,reset_BNO,4);
+        i2c->write_multiplebytes(5,reset_BNO,4);
 
 	//Check communication with device
 	shtpData[0] = SHTP_REPORT_PRODUCT_ID_REQUEST; //Request the product ID and reset info
