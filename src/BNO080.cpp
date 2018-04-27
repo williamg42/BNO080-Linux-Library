@@ -51,6 +51,21 @@ bool BNO080::begin()
 	uint8_t action = 2;                  // 1 = reset, 2 = on; 3 = sleep
         uint8_t reset_BNO[4] = {0,1,0,action};
         i2c->write_multiplebytes(5,reset_BNO,4);
+	
+	usleep(200000);  
+	//
+	uint8_t init[15] = {0,2,seqNum_2,0xF2,0, 0x04,1,0,0,0,0,0,0,0,0 };
+        i2c->write_multiplebytes(16,init,15); 
+ 
+  
+   sprintf ("******** initialize **********");
+                                            
+usleep(2000000);                                                                      // wait until response is available
+receivePacket();                                                                  // to report response  
+receivePacket();
+receivePacket(); 
+	
+	//
 
 	//Check communication with device
 	shtpData[0] = SHTP_REPORT_PRODUCT_ID_REQUEST; //Request the product ID and reset info
