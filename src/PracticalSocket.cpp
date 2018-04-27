@@ -30,6 +30,7 @@
   #include <arpa/inet.h>       // For inet_addr()
   #include <unistd.h>          // For close()
   #include <netinet/in.h>      // For sockaddr_in
+  #include <cstring>
   typedef void raw_type;       // Type used for raw data on this platform
 #endif
 

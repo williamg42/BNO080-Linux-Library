@@ -10,12 +10,20 @@ using namespace std;
 
 const unsigned int BUF_SIZE = 1024;
 
-void HandleConnection(TCPSocket *sock);
+void HandleConnection(TCPSocket *sock, BNO080&);
 
 int main(){
 	BNO080 tt(0,0,0);
-        tt.begin();
         tt.enableGameRotationVector(10);
+	cout << "Enabled GRV" << endl;
+        tt.begin();
+	cout << "Began" << endl;
+
+	for(;;){
+		if(tt.dataAvailable() == true){
+			cout << "Data: " << tt.getQuatI() << endl;
+		}
+	}
 
         try{
             TCPServerSocket servSock(9000);
@@ -44,16 +52,16 @@ void HandleConnection(TCPSocket *sock, BNO080 &sensor1){
     cout << endl;
 
     // Send received string and receive again until the end of transmission
-    char echoBuffer[RCVBUFSIZE];
+    char echoBuffer[BUF_SIZE];
     int recvMsgSize;
     while ((recvMsgSize = sock->recv(echoBuffer, 1)) > 0) { // Zero means
         // end of transmission
         if(strcmp(echoBuffer, "Q") == 0){
             //get the data
-            float quatX = tt.getQuatI();
-            float quatY = tt.getQuatJ();
-            float quatZ = tt.getQuatK();
-            float quatW = tt.getQuatReal();
+            float quatX = sensor1.getQuatI();
+            float quatY = sensor1.getQuatJ();
+            float quatZ = sensor1.getQuatK();
+            float quatW = sensor1.getQuatReal();
             ostringstream os;
             os << quatW << ',' << quatX << ',' << quatY << ',' << quatZ;
             string tempS = os.str();
